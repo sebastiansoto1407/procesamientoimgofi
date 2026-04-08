@@ -1,1 +1,137 @@
 prueba
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+img_bgr = cv2.imread("cv1.jpeg")
+img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+
+suave = cv2.bilateralFilter(img_rgb, 9, 70, 70)
+gris = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+_, bordes = cv2.threshold(gris, 120, 255, cv2.THRESH_BINARY)
+mascara = cv2.cvtColor(bordes, cv2.COLOR_GRAY2RGB)
+avatar = cv2.bitwise_and(suave, mascara)
+
+os.makedirs("salidas", exist_ok=True)
+cv2.imwrite("salidas/e4_avatar.png", cv2.cvtColor(avatar, cv2.COLOR_RGB2BGR))
+
+plt.figure(figsize=(12, 8))
+plt.subplot(2, 2, 1)
+plt.imshow(img_rgb)
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(2, 2, 2)
+plt.imshow(suave)
+plt.title("Suavizada")
+plt.axis("off")
+
+plt.subplot(2, 2, 3)
+plt.imshow(bordes, cmap="gray")
+plt.title("Umbral")
+plt.axis("off")
+
+plt.subplot(2, 2, 4)
+plt.imshow(avatar)
+plt.title("Avatar")
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+print("Guardada: salidas/e4_avatar.png")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+img_bgr = cv2.imread("imagen1.jpg")
+img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+alto, ancho = img_rgb.shape[:2]
+
+x = np.random.randint(0, ancho)
+y = np.random.randint(0, alto)
+img_punto = img_rgb.copy()
+cv2.circle(img_punto, (x, y), 8, (255, 255, 255), -1)
+cv2.circle(img_punto, (x, y), 12, (255, 0, 0), 2)
+
+solarizada = np.where(img_rgb < 128, img_rgb, 255 - img_rgb).astype(np.uint8)
+posterizada = (np.round((img_rgb / 255.0) * 3) * (255 / 3)).astype(np.uint8)
+
+gris = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+_, umbral_otsu = cv2.threshold(gris, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+mezcla = cv2.addWeighted(posterizada, 0.6, solarizada, 0.4, 0)
+artistica = np.where(umbral_otsu[:, :, None] > 0, mezcla, img_rgb).astype(np.uint8)
+
+os.makedirs("salidas", exist_ok=True)
+resultados = {
+    "e3_original.png": img_rgb,
+    "e3_punto_interes.png": img_punto,
+    "e3_solarizada.png": solarizada,
+    "e3_posterizada.png": posterizada,
+    "e3_umbral_otsu.png": umbral_otsu,
+    "e3_artistica.png": artistica
+}
+
+for nombre, imagen in resultados.items():
+    ruta_out = os.path.join("salidas", nombre)
+    if imagen.ndim == 2:
+        cv2.imwrite(ruta_out, imagen)
+    else:
+        cv2.imwrite(ruta_out, cv2.cvtColor(imagen, cv2.COLOR_RGB2BGR))
+
+plt.figure(figsize=(14, 8))
+plt.subplot(2, 3, 1)
+plt.imshow(img_rgb)
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(2, 3, 2)
+plt.imshow(img_punto)
+plt.title(f"Punto: ({x}, {y})")
+plt.axis("off")
+
+plt.subplot(2, 3, 3)
+plt.imshow(solarizada)
+plt.title("Solarizada")
+plt.axis("off")
+
+plt.subplot(2, 3, 4)
+plt.imshow(posterizada)
+plt.title("Posterizada")
+plt.axis("off")
+
+plt.subplot(2, 3, 5)
+plt.imshow(umbral_otsu, cmap="gray")
+plt.title("Umbral Otsu")
+plt.axis("off")
+
+plt.subplot(2, 3, 6)
+plt.imshow(artistica)
+plt.title("Artistica")
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
